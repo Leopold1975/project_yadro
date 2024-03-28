@@ -11,5 +11,3 @@ test: build
 
 bench: 
 	go test -bench=. -benchmem > benchmarks.out
-
-.PHONY: build all
