@@ -3,6 +3,7 @@ package main
 // snowball.Stem doesn't stem short words, so we should handle it by ourselves.
 var stopWords = map[string]struct{}{ //nolint:gochecknoglobals
 	"a":          {},
+	"am":         {},
 	"an":         {},
 	"and":        {},
 	"as":         {},
@@ -16,6 +17,7 @@ var stopWords = map[string]struct{}{ //nolint:gochecknoglobals
 	"did":        {},
 	"do":         {},
 	"does":       {},
+	"done":       {},
 	"during":     {},
 	"either":     {},
 	"for":        {},
@@ -28,6 +30,7 @@ var stopWords = map[string]struct{}{ //nolint:gochecknoglobals
 	"in":         {},
 	"into":       {},
 	"it":         {},
+	"is":         {},
 	"may":        {},
 	"me":         {},
 	"might":      {},

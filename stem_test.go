@@ -48,6 +48,10 @@ var testcases = []TestCase{
 		In:       "running runners ran",
 		Expected: []string{"run", "runner", "ran"},
 	},
+	{
+		In:       "he is I am you are she's I'm we're",
+		Expected: []string{},
+	},
 	// {
 	// 	In:       "the tallest building in the city",
 	// 	Expected: []string{"tall", "build", "city"},
@@ -68,6 +72,26 @@ var testcases = []TestCase{
 		In:       "as soon as possible with an passion",
 		Expected: []string{"soon", "possibl", "passion"},
 	},
+	{
+		In:       "Conor Mc'Gregor  is running away",
+		Expected: []string{"conor", "mc'gregor", "run", "away"},
+	},
+	{
+		In:       "Conor Mc'Gregor's running away",
+		Expected: []string{"conor", "mc'gregor", "run", "away"},
+	},
+	{
+		In:       "April O'Neil likes pizza",
+		Expected: []string{"april", "o'neil", "like", "pizza"},
+	},
+	{
+		In:       "Conor Mc'Gregor've done this",
+		Expected: []string{"conor", "mc'gregor"},
+	},
+	{
+		In:       "I  wouldn't've done this",
+		Expected: []string{},
+	},
 }
 
 func TestStemWords(t *testing.T) {
@@ -77,7 +101,7 @@ func TestStemWords(t *testing.T) {
 			words, err := StemWordsSnowball(tc.In)
 
 			require.NoError(t, err)
-			require.ElementsMatch(t, words, tc.Expected)
+			require.ElementsMatch(t, words, tc.Expected, "actual 	%v 	expected %v", words, tc.Expected)
 		}
 	})
 	t.Run("test porter2", func(t *testing.T) {
@@ -85,7 +109,7 @@ func TestStemWords(t *testing.T) {
 			words, err := StemWordsPorter(tc.In)
 
 			require.NoError(t, err)
-			require.ElementsMatch(t, words, tc.Expected)
+			require.ElementsMatch(t, words, tc.Expected, "actual 	%v 	expected %v", words, tc.Expected)
 		}
 	})
 }
