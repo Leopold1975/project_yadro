@@ -1,0 +1,8 @@
+goos: linux
+goarch: amd64
+pkg: yadro_app
+cpu: 11th Gen Intel(R) Core(TM) i5-11400H @ 2.70GHz
+BenchmarkSnowball-12    	   10000	    116808 ns/op	   0.27 MB/s	   57660 B/op	    2507 allocs/op
+BenchmarkPorter-12      	   34993	     36435 ns/op	   0.88 MB/s	   15524 B/op	     258 allocs/op
+PASS
+ok  	yadro_app	2.807s
