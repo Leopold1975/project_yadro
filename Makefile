@@ -1,14 +1,14 @@
-APPNAME := bin/myapp
+APPNAME := bin/xkcd
 
 build:
 	@echo "Building $(APPNAME)..."
-	go build -o $(APPNAME) .
+	go build -o $(APPNAME) ./cmd/xkcd/.
 
 all: build
 
 test: build
-	@./$(APPNAME) -s "i'll follow you as long as you are following me" | grep -E 'long' | grep -E 'follow'
-	go test -count=1 -v .
-
-bench: 
-	go test -bench=. -benchmem > benchmarks.out
+	@./$(APPNAME)
+	@./$(APPNAME) -o -n 5 | \
+	(grep -oP '"(1|2|3|4|5)":')|| (echo "test failed" && exit 1)
+	go test -count=1 -v ./...
+	@echo tests ok
