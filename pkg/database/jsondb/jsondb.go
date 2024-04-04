@@ -11,8 +11,17 @@ import (
 	"github.com/Leopold1975/yadro_app/pkg/database"
 )
 
+const (
+	EstimatedSize = 3000
+)
+
+// we use map here because it's only json db's inner
+// data object.
+// External clients should use only lists (slices) and models.
+type JSONStorage map[string]database.ComicsInfo
+
 type JSONDatabase struct {
-	db       map[string]database.ComicsInfo
+	db       JSONStorage
 	filePath string
 }
 
@@ -23,7 +32,7 @@ func New(path string) (*JSONDatabase, error) {
 	}
 	defer f.Close()
 
-	db := make(map[string]database.ComicsInfo, 3000) //nolint:gomnd
+	db := make(JSONStorage, EstimatedSize)
 
 	dec := json.NewDecoder(f)
 	if err := dec.Decode(&db); err != nil && !errors.Is(err, io.EOF) {
@@ -36,12 +45,14 @@ func New(path string) (*JSONDatabase, error) {
 	}, nil
 }
 
-func (jdb *JSONDatabase) Store(db map[string]database.ComicsInfo) error {
+func (jdb *JSONDatabase) CreateList(comics []database.ComicsInfo) error {
 	f, err := os.OpenFile(jdb.filePath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o666) //nolint:gomnd
 	if err != nil {
 		return fmt.Errorf("open file error: %w", err)
 	}
 	defer f.Close()
+
+	db := toJSONStorage(comics)
 
 	enc := json.NewEncoder(f)
 
@@ -63,12 +74,12 @@ func (jdb *JSONDatabase) GetByID(id string) (database.ComicsInfo, error) {
 
 // GetN returns N values with ID <= N.
 // N can be set to -1 to return all the values.
-func (jdb *JSONDatabase) GetN(n int) map[string]database.ComicsInfo {
+func (jdb *JSONDatabase) GetN(n int) JSONStorage {
 	if n == -1 {
 		return jdb.db
 	}
 
-	res := make(map[string]database.ComicsInfo, n)
+	res := make(JSONStorage, n)
 
 	for i := 1; i <= n; i++ {
 		id := strconv.Itoa(i)
@@ -82,4 +93,14 @@ func (jdb *JSONDatabase) GetN(n int) map[string]database.ComicsInfo {
 	}
 
 	return res
+}
+
+func toJSONStorage(comics []database.ComicsInfo) JSONStorage {
+	m := make(JSONStorage, len(comics))
+
+	for _, c := range comics {
+		m[c.ID] = c
+	}
+
+	return m
 }

@@ -167,11 +167,18 @@ func handleErrorChan(errCh <-chan error, wg *sync.WaitGroup) error {
 func fillIDs(ids chan<- string, done <-chan struct{}) {
 	for i := 1; ; i++ {
 		select {
-		case ids <- strconv.Itoa(i):
 		case <-done:
 			close(ids)
 
 			return
+		default:
+			select {
+			case ids <- strconv.Itoa(i):
+			case <-done:
+				close(ids)
+
+				return
+			}
 		}
 	}
 }

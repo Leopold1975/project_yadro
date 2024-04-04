@@ -33,3 +33,26 @@ func ToDBComicsInfo(m Model) (database.ComicsInfo, error) {
 		Keywords: keywords,
 	}, nil
 }
+
+func ToDBComicsInfos(models []Model) ([]database.ComicsInfo, error) {
+	result := make([]database.ComicsInfo, 0, len(models))
+	errs := make([]error, 0)
+
+	for _, m := range models {
+		ci, err := ToDBComicsInfo(m)
+		if err != nil {
+			errs = append(errs, err)
+
+			continue
+		}
+
+		result = append(result, ci)
+	}
+
+	var err error
+	if len(errs) != 0 {
+		err = errors.Join(errs...)
+	}
+
+	return result, err
+}

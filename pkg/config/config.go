@@ -7,8 +7,8 @@ import (
 )
 
 type Config struct {
-	SourceURL string `yaml:"source_url" env-default:"https://xkcd.com"` //nolint:tagliatelle
-	DBPath    string `yaml:"db_file" env-default:"database.json"`       //nolint:tagliatelle
+	SourceURL string `env-default:"https://xkcd.com" yaml:"source_url"` //nolint:tagliatelle
+	DBPath    string `env-default:"database.json"    yaml:"db_file"`    //nolint:tagliatelle
 }
 
 func New(path string) (Config, error) {

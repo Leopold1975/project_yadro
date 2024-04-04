@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/Leopold1975/yadro_app/pkg/config"
-	"github.com/Leopold1975/yadro_app/pkg/database"
 	"github.com/Leopold1975/yadro_app/pkg/database/jsondb"
 	"github.com/Leopold1975/yadro_app/pkg/xkcd"
 )
@@ -66,20 +65,12 @@ func StoreMode(sourceURL string, db *jsondb.JSONDatabase) error {
 		return err //nolint:wrapcheck
 	}
 
-	m := make(map[string]database.ComicsInfo, len(l))
-
-	for _, v := range l {
-		ci, err := xkcd.ToDBComicsInfo(v)
-		if err != nil {
-			log.Printf("id: %d error: %s", v.Num, err.Error())
-
-			continue
-		}
-
-		m[ci.ID] = ci
+	infos, err := xkcd.ToDBComicsInfos(l)
+	if err != nil {
+		log.Printf("xkcd error: %s", err.Error())
 	}
 
-	if err := db.Store(m); err != nil {
+	if err := db.CreateList(infos); err != nil {
 		return fmt.Errorf("store error: %w", err)
 	}
 
