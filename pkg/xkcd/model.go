@@ -1,7 +1,6 @@
 package xkcd
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -10,8 +9,8 @@ import (
 )
 
 var (
-	ErrNotFound       = errors.New("resource not found")
-	ErrUnexpectedCode = errors.New("unexpected response from server")
+	ErrNotFound       = fmt.Errorf("resource not found")              //nolint:perfsprint
+	ErrUnexpectedCode = fmt.Errorf("unexpected response from server") //nolint:perfsprint
 )
 
 type Model struct {
@@ -50,8 +49,14 @@ func ToDBComicsInfos(models []Model) ([]database.ComicsInfo, error) {
 	}
 
 	var err error
-	if len(errs) != 0 {
-		err = errors.Join(errs...)
+	for _, e := range errs {
+		if err == nil {
+			err = fmt.Errorf("%w", e)
+
+			continue
+		}
+
+		err = fmt.Errorf("%w\n%w", err, e)
 	}
 
 	return result, err
