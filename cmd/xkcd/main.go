@@ -1,28 +1,26 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/Leopold1975/yadro_app/pkg/app"
 	"github.com/Leopold1975/yadro_app/pkg/config"
 	"github.com/Leopold1975/yadro_app/pkg/database/jsondb"
 	"github.com/Leopold1975/yadro_app/pkg/xkcd"
 )
 
 func main() {
-	var outInStdout bool
+	var configPath string
 
-	var numShown int
-
-	flag.BoolVar(&outInStdout, "o", false, "shows saved comics's information, can be used with -n")
-	flag.IntVar(&numShown, "n", -1, "show n saved comics' info")
-
+	flag.StringVar(&configPath, "c", "", "path to configuration file")
 	flag.Parse()
 
-	cfg, err := config.New("config.yaml")
+	cfg, err := config.New(configPath)
 	if err != nil {
 		log.Fatalf("config getting error: %s", err.Error())
 	}
@@ -32,47 +30,17 @@ func main() {
 		log.Fatalf("json db error: %s", err.Error())
 	}
 
-	if outInStdout {
-		if err := ShowMode(numShown, db); err != nil {
-			log.Fatalf("show comics' info error: %s", err.Error())
-		}
-	} else {
-		if err := StoreMode(cfg.SourceURL, db); err != nil {
-			log.Fatalf("store comics error: %s", err.Error())
-		}
-	}
-}
+	c := xkcd.New(cfg.SourceURL, cfg.Parallel)
 
-func ShowMode(numShown int, db *jsondb.JSONDatabase) error {
-	enc := json.NewEncoder(os.Stdout)
+	app := app.New(c, db, cfg)
 
-	enc.SetIndent("", "\t")
+	shutdownSignals := []os.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT}
 
-	res := db.GetN(numShown)
+	ctx, cancel := signal.NotifyContext(context.Background(), shutdownSignals...)
+	defer cancel()
 
-	if err := enc.Encode(res); err != nil {
-		return fmt.Errorf("encode error: %w", err)
-	}
-
-	return nil
-}
-
-func StoreMode(sourceURL string, db *jsondb.JSONDatabase) error {
-	c := xkcd.New(sourceURL)
-
-	l, err := c.GetAllComics()
+	err = app.Run(ctx)
 	if err != nil {
-		return err //nolint:wrapcheck
+		log.Println(err)
 	}
-
-	infos, err := xkcd.ToDBComicsInfos(l)
-	if err != nil {
-		log.Printf("xkcd error: %s", err.Error())
-	}
-
-	if err := db.CreateList(infos); err != nil {
-		return fmt.Errorf("store error: %w", err)
-	}
-
-	return nil
 }

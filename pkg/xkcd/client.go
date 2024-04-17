@@ -8,8 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
-	"sync"
 	"time"
 )
 
@@ -17,31 +15,29 @@ const (
 	infoSuffix = "info.0.json"
 )
 
-const (
-	NumWorkers      = 100
-	ErrorCapacity   = 10
-	NotFoundAllowed = 20
-)
-
 type Client struct {
-	sourceURL string
-	client    *http.Client
+	sourceURL  string
+	client     *http.Client
+	numWorkers int
+	Err        error
 }
 
-func New(sourceURL string) *Client {
+func New(sourceURL string, numWorkers int) *Client {
 	return &Client{
-		sourceURL: sourceURL,
-		client:    http.DefaultClient,
+		sourceURL:  sourceURL,
+		client:     http.DefaultClient,
+		numWorkers: numWorkers,
+		Err:        nil,
 	}
 }
 
-func (c *Client) GetComics(id string) (Model, error) {
+func (c *Client) GetComics(ctx context.Context, id string) (Model, error) {
 	resURL, err := url.JoinPath(c.sourceURL, id, infoSuffix)
 	if err != nil {
 		return Model{}, fmt.Errorf("join path error: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10) //nolint:gomnd
+	ctx, cancel := context.WithTimeout(ctx, time.Second*5) //nolint:gomnd
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, resURL, nil)
@@ -77,108 +73,22 @@ func (c *Client) GetComics(id string) (Model, error) {
 	}
 }
 
-func (c *Client) GetAllComics() ([]Model, error) {
-	result := make([]Model, 0, 2048) //nolint:gomnd
-
-	done := make(chan struct{})
-	errCh := make(chan error, ErrorCapacity)
-	notFoundErr := make(chan error, NotFoundAllowed)
-
-	comics := make(chan Model, NumWorkers)
-	ids := make(chan string, NumWorkers*3) //nolint:gomnd
-
-	go func() {
-		fillIDs(ids, done)
-	}()
-
-	go func() {
-		defer close(comics)
-		defer close(errCh)
-		defer close(notFoundErr)
-
-		wg := sync.WaitGroup{}
-		wg.Add(NumWorkers)
-
-		for i := 0; i < NumWorkers; i++ {
-			go func() {
-				defer wg.Done()
-
-				for id := range ids {
-					m, err := c.GetComics(id)
-					if err != nil {
-						if errors.Is(err, ErrNotFound) {
-							select {
-							case notFoundErr <- err:
-							case <-done:
-								return
-							default:
-								close(done)
-							}
-
-							continue
-						}
-						errCh <- fmt.Errorf("id: %s error: %w", id, err)
-
-						continue
-					}
-					comics <- m
-				}
-			}()
-		}
-		wg.Wait()
-	}()
-
+func (c *Client) HandleErrorChan(ctx context.Context, errCh <-chan error) {
 	var err error
 
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-
-	go func() {
-		err = handleErrorChan(errCh, &wg)
-	}()
-
-	for c := range comics {
-		result = append(result, c)
-	}
-
-	wg.Wait()
-
-	if err != nil {
-		return []Model{}, err
-	}
-
-	return result, nil
-}
-
-func handleErrorChan(errCh <-chan error, wg *sync.WaitGroup) error {
-	defer wg.Done()
-
-	var err error
-
+loop:
 	for e := range errCh {
-		if e != nil {
-			err = errors.Join(err, e)
-		}
-	}
-
-	return err
-}
-
-func fillIDs(ids chan<- string, done <-chan struct{}) {
-	for i := 1; ; i++ {
 		select {
-		case <-done:
-			close(ids)
-
-			return
+		case <-ctx.Done():
+			break loop
 		default:
-			select {
-			case ids <- strconv.Itoa(i):
-			case <-done:
-				close(ids)
-
-				return
+			if e != nil {
+				err = errors.Join(err, e)
 			}
 		}
+	}
+
+	if err != nil {
+		c.Err = err
 	}
 }

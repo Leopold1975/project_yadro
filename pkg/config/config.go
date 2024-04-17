@@ -9,6 +9,7 @@ import (
 type Config struct {
 	SourceURL string `env-default:"https://xkcd.com" yaml:"source_url"` //nolint:tagliatelle
 	DBPath    string `env-default:"database.json"    yaml:"db_file"`    //nolint:tagliatelle
+	Parallel  int    `env-required:"true"            yaml:"parallel"`
 }
 
 func New(path string) (Config, error) {
