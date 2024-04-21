@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"sync"
 
 	"github.com/Leopold1975/yadro_app/pkg/database"
 )
@@ -23,6 +24,7 @@ type JSONStorage map[string]database.ComicsInfo
 type JSONDatabase struct {
 	db       JSONStorage
 	filePath string
+	mu       sync.RWMutex
 }
 
 func New(path string) (*JSONDatabase, error) {
@@ -42,28 +44,36 @@ func New(path string) (*JSONDatabase, error) {
 	return &JSONDatabase{
 		db:       db,
 		filePath: path,
+		mu:       sync.RWMutex{},
 	}, nil
 }
 
-func (jdb *JSONDatabase) CreateList(comics []database.ComicsInfo) error {
+func (jdb *JSONDatabase) Flush() error {
 	f, err := os.OpenFile(jdb.filePath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o666) //nolint:gomnd
 	if err != nil {
 		return fmt.Errorf("open file error: %w", err)
 	}
 	defer f.Close()
 
-	db := toJSONStorage(comics)
-
 	enc := json.NewEncoder(f)
 
-	if err := enc.Encode(db); err != nil {
+	if err := enc.Encode(jdb.db); err != nil {
 		return fmt.Errorf("encode error: %w", err)
 	}
 
 	return nil
 }
 
+func (jdb *JSONDatabase) AddOne(ci database.ComicsInfo) {
+	jdb.mu.Lock()
+	jdb.db[ci.ID] = ci
+	jdb.mu.Unlock()
+}
+
 func (jdb *JSONDatabase) GetByID(id string) (database.ComicsInfo, error) {
+	jdb.mu.RLock()
+	defer jdb.mu.RUnlock()
+
 	ci, ok := jdb.db[id]
 	if !ok {
 		return database.ComicsInfo{}, database.ErrNotFound
@@ -93,14 +103,4 @@ func (jdb *JSONDatabase) GetN(n int) JSONStorage {
 	}
 
 	return res
-}
-
-func toJSONStorage(comics []database.ComicsInfo) JSONStorage {
-	m := make(JSONStorage, len(comics))
-
-	for _, c := range comics {
-		m[c.ID] = c
-	}
-
-	return m
 }
