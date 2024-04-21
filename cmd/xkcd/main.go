@@ -30,7 +30,7 @@ func main() {
 		log.Fatalf("json db error: %s", err.Error())
 	}
 
-	c := xkcd.New(cfg.SourceURL, cfg.Parallel)
+	c := xkcd.New(cfg.SourceURL)
 
 	app := app.New(c, db, cfg)
 

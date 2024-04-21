@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
+	_ "net/http/pprof" //nolint:gosec // TODO: Убрать при деплое.
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/Leopold1975/yadro_app/pkg/config"
 	"github.com/Leopold1975/yadro_app/pkg/database"
@@ -35,30 +36,41 @@ const (
 )
 
 func (a App) Run(ctx context.Context) error {
-	done := make(chan struct{})
 	ids := make(chan string, a.cfg.Parallel)
 	comicsModels := make(chan xkcd.Model, a.cfg.Parallel)
 
 	go func() {
-		a.FetchIDs(ids, done)
+		http.ListenAndServe("localhost:6060", nil) //nolint:gosec,errcheck // pprof
+	}()
+
+	wg := sync.WaitGroup{}
+	wg.Add(3) //nolint:gomnd
+
+	ctxF, cancel := context.WithCancel(ctx)
+	go func() {
+		defer wg.Done()
+		a.FetchIDs(ctxF, ids)
 	}()
 
 	go func() {
-		a.GetComics(ctx, comicsModels, ids, done)
+		defer wg.Done()
+		a.GetComics(ctx, comicsModels, ids)
+		cancel()
 	}()
 
 	go func() {
+		defer wg.Done()
 		a.SaveComics(ctx, comicsModels)
+	}()
+
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
 	}()
 
 	select {
 	case <-ctx.Done():
-		select {
-		case <-done:
-		default:
-			close(done)
-		}
-
 		a.Shutdown()
 
 		if a.client.Err != nil {
@@ -67,7 +79,13 @@ func (a App) Run(ctx context.Context) error {
 
 		return fmt.Errorf("context error: %w", ctx.Err())
 	case <-done:
-		a.db.Flush()
+		if err := a.db.Flush(); err != nil {
+			return fmt.Errorf("flush to file error %w", err)
+		}
+
+		if a.client.Err != nil {
+			return fmt.Errorf("client error: %w", a.client.Err)
+		}
 
 		return nil
 	}
@@ -78,33 +96,33 @@ func (a App) Shutdown() {
 	a.db.Flush()
 }
 
-func (a App) FetchIDs(ids chan string, done chan struct{}) {
+func (a App) FetchIDs(ctx context.Context, ids chan string) {
 	defer close(ids)
 
 	for i := 1; ; i++ {
-		select {
-		case <-done:
-			return
-		default:
-			id := strconv.Itoa(i)
-			_, err := a.db.GetByID(id)
+		id := strconv.Itoa(i)
 
-			if err != nil && errors.Is(err, database.ErrNotFound) {
-				ids <- id
+		_, err := a.db.GetByID(id)
+		if err != nil && errors.Is(err, database.ErrNotFound) {
+			select {
+			case <-ctx.Done():
+				return
+			case ids <- id:
 			}
 		}
 	}
 }
 
-func (a App) GetComics(ctx context.Context, comicsModels chan xkcd.Model, ids chan string, done chan struct{}) {
+func (a App) GetComics(ctx context.Context, comicsModels chan<- xkcd.Model, ids <-chan string) {
 	errCh := make(chan error, ErrorCapacity)
 	notFoundErr := make(chan error, a.cfg.Parallel*3) //nolint:gomnd
+	// Канал для сбора ошибок NotFOund, переполнение которого считается сигналом к окончанию работы.
 
 	defer close(comicsModels)
 	defer close(notFoundErr)
 
 	wg := sync.WaitGroup{}
-	wg.Add(a.cfg.Parallel + 1)
+	wg.Add(a.cfg.Parallel)
 
 	go func() {
 		defer wg.Done()
@@ -116,39 +134,34 @@ func (a App) GetComics(ctx context.Context, comicsModels chan xkcd.Model, ids ch
 			defer wg.Done()
 
 			for id := range ids {
-				ctx, cancel := context.WithTimeout(ctx, time.Second*5) //nolint:gomnd
-
 				comicsModel, err := a.client.GetComics(ctx, id)
-
-				cancel()
-
 				if err != nil {
 					if errors.Is(err, xkcd.ErrNotFound) {
 						select {
 						case notFoundErr <- err:
-						case <-done:
-							return
 						default:
-							close(done)
+							return
 						}
-
-						continue
 					}
 					errCh <- fmt.Errorf("id: %s error: %w", id, err)
 
 					continue
 				}
 				select {
-				case <-notFoundErr:
-				case <-done:
+				case <-notFoundErr: // Возможно получение "ложных" NotFound (из-за удаления id),
+				// которые не должны влиять на получение остальных комиксов.
+				case <-ctx.Done():
 					return
 				default:
 				}
-
 				comicsModels <- comicsModel
 			}
 		}()
 	}
+	wg.Wait()
+	close(errCh)
+	wg.Add(1) // Добавляем ожидание заверешния функции-обработчика сетевых ошибок.
+
 	wg.Wait()
 }
 
@@ -166,4 +179,21 @@ func (a App) SaveComics(ctx context.Context, comicsModels chan xkcd.Model) {
 			a.db.AddOne(ci)
 		}
 	}
+}
+
+func (a App) Health() error {
+	var err error
+
+	for i := 1; i < 2922; i++ {
+		if i == 404 { //nolint:gomnd
+			continue
+		}
+
+		_, e := a.db.GetByID(strconv.Itoa(i))
+		if e != nil {
+			err = errors.Join(err, fmt.Errorf("%w id %d", e, i))
+		}
+	}
+
+	return err
 }

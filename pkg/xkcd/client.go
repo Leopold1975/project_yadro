@@ -16,18 +16,16 @@ const (
 )
 
 type Client struct {
-	sourceURL  string
-	client     *http.Client
-	numWorkers int
-	Err        error
+	sourceURL string
+	client    *http.Client
+	Err       error
 }
 
-func New(sourceURL string, numWorkers int) *Client {
+func New(sourceURL string) *Client {
 	return &Client{
-		sourceURL:  sourceURL,
-		client:     http.DefaultClient,
-		numWorkers: numWorkers,
-		Err:        nil,
+		sourceURL: sourceURL,
+		client:    http.DefaultClient,
+		Err:       nil,
 	}
 }
 
