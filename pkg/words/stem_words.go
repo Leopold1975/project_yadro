@@ -7,6 +7,7 @@ import (
 
 	"github.com/kljensen/snowball"
 	"github.com/surgebase/porter2"
+	"golang.org/x/text/unicode/norm"
 )
 
 const (
@@ -72,14 +73,18 @@ func GetWords(phrase string) []string {
 	// See bench_larger_regexp and bench_smaller_regexp to finc out the difference in
 	// performance of these two approaches
 	// re := regexp.MustCompile(`([\,\;\.\?\!\:\&]+|n't|'ve|'re|'m|'ll|'d|'s)`)
-	re := regexp.MustCompile(`[\,\;\.\?\!\:\&\[\]\{\}]+`)
+	re := regexp.MustCompile(`[\,\;\.\?\!\:\&\[\]\{\}\"\*\(\)]+`)
 	cleanedString := re.ReplaceAllString(phrase, "")
 
 	words := strings.Fields(cleanedString)
+	words = splitCompositeWords(words)
+
 	wordsResult := make([]string, 0, len(words))
 
 	for _, word := range words {
+		word = string(norm.NFKD.Bytes([]byte(word)))
 		word = strings.ToLower(word)
+
 		if i := strings.Index(word, "'"); i != -1 {
 			// Part of "larger regexp" solution
 			// if len(word[i:]) < 1 {
@@ -108,4 +113,16 @@ func GetWords(phrase string) []string {
 	}
 
 	return wordsResult
+}
+
+func splitCompositeWords(words []string) []string {
+	for i, w := range words {
+		wrds := strings.Split(w, "/")
+		if len(wrds) != 0 {
+			words[i] = wrds[0]
+			words = append(words, wrds[1:]...)
+		}
+	}
+
+	return words
 }

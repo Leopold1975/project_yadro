@@ -1,5 +1,7 @@
 source_url: https://xkcd.com
 
-db_file: database.json
+db:
+  db_file: database.json
+  indexPath: index.json
 
 parallel: 42 # =~NumCPU*3.5

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -17,7 +18,13 @@ import (
 func main() {
 	var configPath string
 
+	var phraseString string
+
+	var useIndex bool
+
 	flag.StringVar(&configPath, "c", "", "path to configuration file")
+	flag.StringVar(&phraseString, "s", "", "words to find IDs for")
+	flag.BoolVar(&useIndex, "i", false, "make db search through index")
 	flag.Parse()
 
 	cfg, err := config.New(configPath)
@@ -25,7 +32,7 @@ func main() {
 		log.Fatalf("config getting error: %s", err.Error())
 	}
 
-	db, err := jsondb.New(cfg.DBPath)
+	db, err := jsondb.New(cfg.DB, useIndex)
 	if err != nil {
 		log.Fatalf("json db error: %s", err.Error())
 	}
@@ -42,5 +49,16 @@ func main() {
 	err = app.Run(ctx)
 	if err != nil {
 		log.Println(err)
+	}
+
+	if phraseString != "" {
+		str, err := app.GetIDs(phraseString)
+		if err != nil {
+			log.Println(err)
+
+			return
+		}
+
+		fmt.Fprintf(os.Stdout, "%v\n", str)
 	}
 }

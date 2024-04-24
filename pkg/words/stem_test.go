@@ -93,6 +93,30 @@ var testcases = []TestCase{
 		In:       "I  wouldn't've done this",
 		Expected: []string{},
 	},
+	{
+		In:       "Hello there!",
+		Expected: []string{"hello"},
+	},
+	{
+		In:       "Hello there!",
+		Expected: []string{"hello"},
+	},
+	{
+		In:       "Have \"ᵣeₐd\"",
+		Expected: []string{"have", "read"},
+	},
+	{
+		In:       "He 𝓪𝓵𝓼𝓸 \"ᵣeₐd\" it",
+		Expected: []string{"also", "read"},
+	},
+	{
+		In:       "airplane/treadmil",
+		Expected: []string{"airplan", "treadmil"},
+	},
+	{
+		In:       "He is *reading*",
+		Expected: []string{"read"},
+	},
 }
 
 func TestStemWords(t *testing.T) {
