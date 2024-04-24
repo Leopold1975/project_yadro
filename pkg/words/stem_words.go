@@ -72,7 +72,7 @@ func GetWords(phrase string) []string {
 	// See bench_larger_regexp and bench_smaller_regexp to finc out the difference in
 	// performance of these two approaches
 	// re := regexp.MustCompile(`([\,\;\.\?\!\:\&]+|n't|'ve|'re|'m|'ll|'d|'s)`)
-	re := regexp.MustCompile(`[\,\;\.\?\!\:\&\[\]\{\}]+`)
+	re := regexp.MustCompile(`[\,\;\.\?\!\:\&\[\]\{\}\"]+`)
 	cleanedString := re.ReplaceAllString(phrase, "")
 
 	words := strings.Fields(cleanedString)
