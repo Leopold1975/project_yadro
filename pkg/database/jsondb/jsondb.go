@@ -16,7 +16,7 @@ import (
 
 const (
 	EstimatedDBSize    = 3000
-	EstimatedIndexSize = 30000
+	EstimatedIndexSize = 20000
 )
 
 // we use map here because it's only json db's inner
@@ -40,7 +40,7 @@ func New(cfg config.DB, useIndex bool) (*JSONDatabase, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open file error: %w", err)
 	}
-	defer f.Close()
+	defer func(f *os.File) { f.Close() }(f)
 
 	db := make(JSONStorage, EstimatedDBSize)
 

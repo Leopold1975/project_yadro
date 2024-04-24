@@ -7,6 +7,7 @@ require (
 	github.com/kljensen/snowball v0.9.0
 	github.com/stretchr/testify v1.9.0
 	github.com/surgebase/porter2 v0.0.0-20150829210152-56e4718818e8
+	golang.org/x/text v0.14.0
 )
 
 require (

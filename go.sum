@@ -16,6 +16,8 @@ github.com/surge/glog v0.0.0-20141108051140-2578deb2b95c h1:cVA8Fd14+bmcDyVutgf9
 github.com/surge/glog v0.0.0-20141108051140-2578deb2b95c/go.mod h1:W6gI0HQAbNyEO/62hesTBIbabSGJaEdlUApLw8UtuB0=
 github.com/surgebase/porter2 v0.0.0-20150829210152-56e4718818e8 h1:5vXv18UxS9YuPlwenRHgGnJrRgE/XUjMQGJzggIar94=
 github.com/surgebase/porter2 v0.0.0-20150829210152-56e4718818e8/go.mod h1:galqUK/f4MNkChzZE+tDTitV20g9grEqy3P5IHaVIk8=
+golang.org/x/text v0.14.0 h1:ScX5w1eTa3QqT8oi6+ziP7dTV1S2+ALU0bI+0zXKWiQ=
+golang.org/x/text v0.14.0/go.mod h1:18ZOQIKpY8NJVqYksKHtTdi31H5itFRjB5/qKTNYzSU=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
