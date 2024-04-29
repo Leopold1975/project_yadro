@@ -24,11 +24,18 @@ func (b BackgroundRefreshUsecase) Refresh(ctx context.Context, l logger.Logger) 
 	ticker := time.NewTicker(b.interval)
 
 	l.Info("Start background refresh")
-	select {
-	case <-ctx.Done():
-		return
-	case <-ticker.C:
-		_, err := b.fetch.FetchComics(ctx)
-		l.Error("background refrsh error", err)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			resp, err := b.fetch.FetchComics(ctx)
+			if err != nil {
+				l.Error("background refrsh error", err)
+				continue
+			}
+
+			l.Info("refreshed", "new comics", resp.New, "total comics", resp.Total)
+		}
 	}
 }
