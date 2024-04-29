@@ -1,7 +1,0 @@
-goos: linux
-goarch: amd64
-cpu: 11th Gen Intel(R) Core(TM) i5-11400H @ 2.70GHz
-BenchmarkGetIDsWithoutIndex-12    	     188	   6656359 ns/op	   92850 B/op	     222 allocs/op
-BenchmarkGetIDsWithIndex-12       	   18002	     66278 ns/op	   73954 B/op	     186 allocs/op
-PASS
-ok  	command-line-arguments	4.017s

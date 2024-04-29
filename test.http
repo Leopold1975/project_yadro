@@ -1,0 +1,10 @@
+POST http://localhost:4444/update
+
+Content-Type: application/json
+
+{}
+
+###
+GET http://localhost:4444/pics?search="I'll follow your questions"
+
+Content-Type: application/json

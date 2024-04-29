@@ -3,16 +3,13 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/Leopold1975/yadro_app/pkg/app"
-	"github.com/Leopold1975/yadro_app/pkg/config"
-	"github.com/Leopold1975/yadro_app/pkg/database/jsondb"
-	"github.com/Leopold1975/yadro_app/pkg/xkcd"
+	"github.com/Leopold1975/yadro_app/internal/app"
+	"github.com/Leopold1975/yadro_app/internal/pkg/config"
 )
 
 func main() {
@@ -32,33 +29,10 @@ func main() {
 		log.Fatalf("config getting error: %s", err.Error())
 	}
 
-	db, err := jsondb.New(cfg.DB, useIndex)
-	if err != nil {
-		log.Fatalf("json db error: %s", err.Error())
-	}
-
-	c := xkcd.New(cfg.SourceURL)
-
-	app := app.New(c, db, cfg)
-
 	shutdownSignals := []os.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), shutdownSignals...)
 	defer cancel()
 
-	err = app.Run(ctx)
-	if err != nil {
-		log.Println(err)
-	}
-
-	if phraseString != "" {
-		str, err := app.GetIDs(phraseString)
-		if err != nil {
-			log.Println(err)
-
-			return
-		}
-
-		fmt.Fprintf(os.Stdout, "%v\n", str)
-	}
+	app.Run(ctx, cfg, useIndex)
 }

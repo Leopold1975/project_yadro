@@ -5,3 +5,12 @@ db:
   indexPath: index.json
 
 parallel: 42 # =~NumCPU*3.5
+
+log: debug
+
+server:
+  addr: localhost:4444
+  readTimeout: 10s
+  writeTimeout: 10s
+
+refreshInterval: 1m
