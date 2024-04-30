@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -24,7 +25,11 @@ func New(cfg config.Server, h http.Handler) Server {
 }
 
 func (s Server) Start() error {
-	return fmt.Errorf("listen and server error: %w", s.s.ListenAndServe())
+	if err := s.s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return fmt.Errorf("listen and server error: %w", err)
+	}
+
+	return nil
 }
 
 func (s Server) Stop(ctx context.Context) error {

@@ -31,7 +31,7 @@ func Run(ctx context.Context, cfg config.Config, useIndex bool) {
 
 	c := xkcd.New(cfg.SourceURL)
 
-	fetch := usecase.NewComicsFetch(c, db, cfg)
+	fetch := usecase.NewComicsFetch(c, db, cfg.Parallel, lg)
 
 	refresh := usecase.NewBackgroundRefresh(fetch, cfg.RefreshInterval)
 
@@ -47,7 +47,7 @@ func Run(ctx context.Context, cfg config.Config, useIndex bool) {
 
 	go func() {
 		if err := serv.Start(); err != nil {
-			lg.Error("server start error", err)
+			lg.Error("server start error", "error", err)
 		}
 	}()
 
@@ -59,6 +59,6 @@ func Run(ctx context.Context, cfg config.Config, useIndex bool) {
 	defer cancel()
 
 	if err := serv.Stop(ctx); err != nil { //nolint:contextcheck
-		lg.Error("server stop error", err)
+		lg.Error("server stop error", "error", err)
 	}
 }

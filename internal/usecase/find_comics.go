@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 
@@ -9,7 +10,7 @@ import (
 )
 
 const (
-	ResultLen = 10
+	ResultLen = 10 // количетсво возвращаемых комиксов.
 )
 
 type FindComicsUsecase struct {
@@ -31,12 +32,16 @@ func (f FindComicsUsecase) GetComics(phrase string) ([]models.ComicsInfo, error)
 	result := make([]models.ComicsInfo, 0, len(ids))
 
 	for _, id := range ids {
-		c, err := f.db.GetByID(id)
-		if err != nil {
-			continue
+		c, e := f.db.GetByID(id)
+		if e != nil {
+			err = errors.Join(err, e)
 		}
 
 		result = append(result, c)
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	return result, nil
@@ -95,7 +100,7 @@ func GetTopIDs(results ...[]string) []string {
 	for i := 0; i < len(sortedIDs); i++ {
 		result = append(result, sortedIDs[i].Key)
 		if len(result) == ResultLen {
-			return result
+			break
 		}
 	}
 

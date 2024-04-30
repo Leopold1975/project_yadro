@@ -22,8 +22,10 @@ func NewBackgroundRefresh(fetch FetchComicsUsecase, interval time.Duration) Back
 // Refresh не запускает обновление базы комиксов при запуске.
 func (b BackgroundRefreshUsecase) Refresh(ctx context.Context, l logger.Logger) {
 	ticker := time.NewTicker(b.interval)
+	defer ticker.Stop()
 
 	l.Info("Start background refresh")
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -31,7 +33,8 @@ func (b BackgroundRefreshUsecase) Refresh(ctx context.Context, l logger.Logger) 
 		case <-ticker.C:
 			resp, err := b.fetch.FetchComics(ctx)
 			if err != nil {
-				l.Error("background refrsh error", err)
+				l.Error("background refresh error", "error", err)
+
 				continue
 			}
 

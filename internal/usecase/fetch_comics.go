@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"sync"
 
 	"github.com/Leopold1975/yadro_app/internal/models"
 	"github.com/Leopold1975/yadro_app/internal/pkg/config"
+	"github.com/Leopold1975/yadro_app/pkg/logger"
 	"github.com/Leopold1975/yadro_app/pkg/xkcd"
 )
 
@@ -20,9 +20,10 @@ const (
 )
 
 type FetchComicsUsecase struct {
-	client *xkcd.Client
-	db     Storage
-	cfg    config.Config
+	client   *xkcd.Client
+	db       Storage
+	parallel config.Parallel
+	l        logger.Logger
 }
 
 type FetchResponse struct {
@@ -30,17 +31,18 @@ type FetchResponse struct {
 	Total int
 }
 
-func NewComicsFetch(client *xkcd.Client, db Storage, cfg config.Config) FetchComicsUsecase {
+func NewComicsFetch(client *xkcd.Client, db Storage, parallel config.Parallel, l logger.Logger) FetchComicsUsecase {
 	return FetchComicsUsecase{
-		client: client,
-		db:     db,
-		cfg:    cfg,
+		client:   client,
+		db:       db,
+		parallel: parallel,
+		l:        l,
 	}
 }
 
 func (f FetchComicsUsecase) FetchComics(ctx context.Context) (FetchResponse, error) {
-	ids := make(chan string, f.cfg.Parallel)
-	comicsModels := make(chan models.XKCDModel, f.cfg.Parallel)
+	ids := make(chan string, f.parallel)
+	comicsModels := make(chan models.XKCDModel, f.parallel)
 
 	wg := sync.WaitGroup{}
 	wg.Add(3) //nolint:gomnd
@@ -98,14 +100,14 @@ func (f FetchComicsUsecase) fetchIDs(ctx context.Context, ids chan string) {
 
 func (f FetchComicsUsecase) getComics(ctx context.Context, comicsModels chan<- models.XKCDModel, ids <-chan string) {
 	errCh := make(chan error, ErrorCapacity)
-	notFoundErr := make(chan error, f.cfg.Parallel*3) //nolint:gomnd
+	notFoundErr := make(chan error, f.parallel*3) //nolint:gomnd
 	// Канал для сбора ошибок NotFOund, переполнение которого считается сигналом к окончанию работы.
 
 	defer close(comicsModels)
 	defer close(notFoundErr)
 
 	wg := sync.WaitGroup{}
-	wg.Add(f.cfg.Parallel)
+	wg.Add(int(f.parallel))
 
 	doneErr := make(chan struct{})
 	go func() {
@@ -113,7 +115,7 @@ func (f FetchComicsUsecase) getComics(ctx context.Context, comicsModels chan<- m
 		close(doneErr)
 	}()
 
-	for i := 0; i < f.cfg.Parallel; i++ {
+	for i := 0; i < int(f.parallel); i++ {
 		go func() {
 			defer wg.Done()
 			f.getComicsParallel(ctx, comicsModels, ids, notFoundErr, errCh)
@@ -133,7 +135,7 @@ func (f FetchComicsUsecase) saveComics(ctx context.Context, comicsModels chan mo
 		default:
 			ci, err := models.ToDBComicsInfo(cm)
 			if err != nil {
-				log.Println("ToDBComicsInfo error: ", err)
+				f.l.Error("ToDBComicsInfo error", "error", err)
 			}
 
 			f.db.AddOne(ci)

@@ -9,7 +9,7 @@ import (
 
 type Config struct {
 	SourceURL       string        `env-default:"https://xkcd.com" yaml:"source_url"` //nolint:tagliatelle
-	Parallel        int           `env-required:"true"            yaml:"parallel"`
+	Parallel        Parallel      `env-required:"true"            yaml:"parallel"`
 	DB              DB            `yaml:"db"`
 	Log             LogLvl        `yaml:"log"`
 	Server          Server        `yaml:"server"`
@@ -28,6 +28,8 @@ type Server struct {
 }
 
 type LogLvl string
+
+type Parallel int
 
 func New(path string) (Config, error) {
 	var cfg Config
