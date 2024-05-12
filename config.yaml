@@ -1,8 +1,18 @@
 source_url: https://xkcd.com
 
 db:
+  type: postgres 
+  addr: 127.0.0.1:5555
+  username: developer
+  password: developer
+  db: comics
+  sslmode: disable
+  maxConns: 10
+  reload: false
+  version: 1
   db_file: database.json
   indexPath: index.json
+
 
 parallel: 42 # =~NumCPU*3.5
 
@@ -13,4 +23,4 @@ server:
   readTimeout: 10s
   writeTimeout: 10s
 
-refreshInterval: 1m
+refreshTime: 23:16:00 +0300

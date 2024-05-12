@@ -2,8 +2,10 @@ package httpserver
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
+	"github.com/Leopold1975/yadro_app/internal/models"
 	"github.com/Leopold1975/yadro_app/internal/usecase"
 )
 
@@ -42,8 +44,14 @@ func getPicsHandle(find usecase.FindComicsUsecase) func(http.ResponseWriter, *ht
 
 		s := r.FormValue("search")
 
-		comics, err := find.GetComics(s)
+		comics, err := find.GetComics(r.Context(), s)
 		if err != nil {
+			if errors.Is(err, models.ErrNotFound) {
+				writeError(w, err, http.StatusNotFound)
+
+				return
+			}
+
 			writeError(w, err, http.StatusInternalServerError)
 
 			return

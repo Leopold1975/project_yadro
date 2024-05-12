@@ -1,11 +1,13 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
 
 	"github.com/Leopold1975/yadro_app/internal/models"
+	"github.com/Leopold1975/yadro_app/pkg/logger"
 	"github.com/Leopold1975/yadro_app/pkg/words"
 )
 
@@ -15,16 +17,18 @@ const (
 
 type FindComicsUsecase struct {
 	db Storage
+	l  logger.Logger
 }
 
-func NewComicsFind(db Storage) FindComicsUsecase {
+func NewComicsFind(db Storage, l logger.Logger) FindComicsUsecase {
 	return FindComicsUsecase{
 		db: db,
+		l:  l,
 	}
 }
 
-func (f FindComicsUsecase) GetComics(phrase string) ([]models.ComicsInfo, error) {
-	ids, err := f.GetIDs(phrase)
+func (f FindComicsUsecase) GetComics(ctx context.Context, phrase string) ([]models.ComicsInfo, error) {
+	ids, err := f.GetIDs(ctx, phrase)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +36,7 @@ func (f FindComicsUsecase) GetComics(phrase string) ([]models.ComicsInfo, error)
 	result := make([]models.ComicsInfo, 0, len(ids))
 
 	for _, id := range ids {
-		c, e := f.db.GetByID(id)
+		c, e := f.db.GetByID(ctx, id)
 		if e != nil {
 			err = errors.Join(err, e)
 		}
@@ -44,10 +48,14 @@ func (f FindComicsUsecase) GetComics(phrase string) ([]models.ComicsInfo, error)
 		return nil, err
 	}
 
+	if len(result) == 0 {
+		return nil, models.ErrNotFound
+	}
+
 	return result, nil
 }
 
-func (f FindComicsUsecase) GetIDs(phrase string) ([]string, error) {
+func (f FindComicsUsecase) GetIDs(ctx context.Context, phrase string) ([]string, error) {
 	normalizedPhrase, err := words.StemWords(phrase)
 	if err != nil {
 		return nil, fmt.Errorf("stem words error: %w", err)
@@ -57,7 +65,13 @@ func (f FindComicsUsecase) GetIDs(phrase string) ([]string, error) {
 
 	for _, word := range normalizedPhrase {
 		wordIDs := make([]string, 0, ResultLen)
-		for _, c := range f.db.GetByWord(word, ResultLen) {
+
+		comics, err := f.db.GetByWord(ctx, word, ResultLen)
+		if err != nil {
+			f.l.Error("get by word", "error", err)
+		}
+
+		for _, c := range comics {
 			wordIDs = append(wordIDs, c.ID)
 		}
 

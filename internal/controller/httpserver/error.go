@@ -9,7 +9,7 @@ type Error struct {
 	Error string `json:"error"`
 }
 
-func writeError(w http.ResponseWriter, err error, code int) { //nolint:unparam
+func writeError(w http.ResponseWriter, err error, code int) {
 	w.WriteHeader(code)
 
 	e := Error{err.Error()}

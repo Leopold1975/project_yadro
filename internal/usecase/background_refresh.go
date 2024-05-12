@@ -8,21 +8,29 @@ import (
 )
 
 type BackgroundRefreshUsecase struct {
-	fetch    FetchComicsUsecase
-	interval time.Duration
+	fetch       FetchComicsUsecase
+	refreshTime time.Time
 }
 
-func NewBackgroundRefresh(fetch FetchComicsUsecase, interval time.Duration) BackgroundRefreshUsecase {
+func NewBackgroundRefresh(fetch FetchComicsUsecase, refreshTime time.Time) BackgroundRefreshUsecase {
 	return BackgroundRefreshUsecase{
-		fetch:    fetch,
-		interval: interval,
+		fetch:       fetch,
+		refreshTime: refreshTime,
 	}
 }
 
 // Refresh не запускает обновление базы комиксов при запуске.
 func (b BackgroundRefreshUsecase) Refresh(ctx context.Context, l logger.Logger) {
-	ticker := time.NewTicker(b.interval)
-	defer ticker.Stop()
+	now := time.Now()
+	refreshTime := time.Date(now.Year(), now.Month(), now.Day(),
+		b.refreshTime.Hour(), b.refreshTime.Minute(), b.refreshTime.Second(), 0, b.refreshTime.Location())
+
+	if refreshTime.Before(now) {
+		refreshTime = refreshTime.AddDate(0, 0, 1)
+	}
+
+	timer := time.NewTimer(refreshTime.Sub(now))
+	defer timer.Stop()
 
 	l.Info("Start background refresh")
 
@@ -30,7 +38,7 @@ func (b BackgroundRefreshUsecase) Refresh(ctx context.Context, l logger.Logger) 
 		select {
 		case <-ctx.Done():
 			return
-		case <-ticker.C:
+		case <-timer.C:
 			resp, err := b.fetch.FetchComics(ctx)
 			if err != nil {
 				l.Error("background refresh error", "error", err)
@@ -39,6 +47,13 @@ func (b BackgroundRefreshUsecase) Refresh(ctx context.Context, l logger.Logger) 
 			}
 
 			l.Info("refreshed", "new comics", resp.New, "total comics", resp.Total)
+
+			refreshTime = b.calculateNextRefreshTime(refreshTime)
+			timer.Reset(time.Until(refreshTime))
 		}
 	}
+}
+
+func (b BackgroundRefreshUsecase) calculateNextRefreshTime(refreshTime time.Time) time.Time {
+	return refreshTime.Add(24 * time.Hour) //nolint:gomnd
 }

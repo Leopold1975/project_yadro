@@ -1,11 +1,13 @@
 package usecase_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/Leopold1975/yadro_app/internal/database/jsondb"
 	"github.com/Leopold1975/yadro_app/internal/pkg/config"
 	"github.com/Leopold1975/yadro_app/internal/usecase"
+	"github.com/Leopold1975/yadro_app/pkg/logger"
 	"github.com/stretchr/testify/require"
 )
 
@@ -65,6 +67,8 @@ var phrases = []string{
 }
 
 func BenchmarkGetIDsWithoutIndex(b *testing.B) {
+	ctx := context.Background()
+	l := logger.New("info")
 	jdb, err := jsondb.New(config.DB{
 		DBPath:    "database.json",
 		IndexPath: "index.json",
@@ -73,17 +77,19 @@ func BenchmarkGetIDsWithoutIndex(b *testing.B) {
 		b.Error("error %w", err)
 	}
 
-	f := usecase.NewComicsFind(jdb)
+	f := usecase.NewComicsFind(jdb, l)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, p := range phrases {
-			_, _ = f.GetIDs(p)
+			_, _ = f.GetIDs(ctx, p)
 		}
 	}
 }
 
 func BenchmarkGetIDsWithIndex(b *testing.B) {
+	ctx := context.Background()
+	l := logger.New("info")
 	jdb, err := jsondb.New(config.DB{
 		DBPath:    "database.json",
 		IndexPath: "index.json",
@@ -92,12 +98,12 @@ func BenchmarkGetIDsWithIndex(b *testing.B) {
 		b.Error("error %w", err)
 	}
 
-	f := usecase.NewComicsFind(jdb)
+	f := usecase.NewComicsFind(jdb, l)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, p := range phrases {
-			_, _ = f.GetIDs(p)
+			_, _ = f.GetIDs(ctx, p)
 		}
 	}
 }

@@ -10,10 +10,16 @@ import (
 	"github.com/Leopold1975/yadro_app/internal/controller/httpserver"
 	"github.com/Leopold1975/yadro_app/internal/controller/httpserver/middlewares"
 	"github.com/Leopold1975/yadro_app/internal/database/jsondb"
+	"github.com/Leopold1975/yadro_app/internal/database/postgresdb"
 	"github.com/Leopold1975/yadro_app/internal/pkg/config"
 	"github.com/Leopold1975/yadro_app/internal/usecase"
 	"github.com/Leopold1975/yadro_app/pkg/logger"
 	"github.com/Leopold1975/yadro_app/pkg/xkcd"
+)
+
+const (
+	JSONDB     = "json"
+	PostgresDB = "postgres"
 )
 
 func Run(ctx context.Context, cfg config.Config, useIndex bool) {
@@ -23,21 +29,36 @@ func Run(ctx context.Context, cfg config.Config, useIndex bool) {
 
 	lg := logger.New(cfg.Log)
 
-	db, err := jsondb.New(cfg.DB, useIndex)
-	if err != nil {
-		lg.Error("json db error", err)
-		os.Exit(1)
+	var db usecase.Storage
+
+	switch cfg.DB.Type {
+	case JSONDB:
+		var err error
+
+		db, err = jsondb.New(cfg.DB, useIndex)
+		if err != nil {
+			lg.Error("json db error", "error", err)
+			os.Exit(1)
+		}
+	case PostgresDB:
+		dbP, err := postgresdb.New(ctx, cfg.DB)
+		if err != nil {
+			lg.Error("postgres db error", "error", err)
+			os.Exit(1)
+		}
+
+		db = &dbP
 	}
 
 	c := xkcd.New(cfg.SourceURL)
 
 	fetch := usecase.NewComicsFetch(c, db, cfg.Parallel, lg)
 
-	refresh := usecase.NewBackgroundRefresh(fetch, cfg.RefreshInterval)
+	refresh := usecase.NewBackgroundRefresh(fetch, cfg.RefreshTime.Time)
 
 	go refresh.Refresh(ctx, lg)
 
-	find := usecase.NewComicsFind(db)
+	find := usecase.NewComicsFind(db, lg)
 
 	router := httpserver.NewRouter(find, fetch)
 
@@ -46,6 +67,8 @@ func Run(ctx context.Context, cfg config.Config, useIndex bool) {
 	serv := httpserver.New(cfg.Server, logRouter)
 
 	go func() {
+		lg.Info("started server on", "addr", cfg.Server.Addr)
+
 		if err := serv.Start(); err != nil {
 			lg.Error("server start error", "error", err)
 		}

@@ -1,6 +1,7 @@
 package jsondb
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -76,7 +77,7 @@ func New(cfg config.DB, useIndex bool) (*JSONmodels, error) {
 	}, nil
 }
 
-func (jdb *JSONmodels) Flush(updateIndex bool) (int, int, error) {
+func (jdb *JSONmodels) Flush(_ context.Context, updateIndex bool) (int, int, error) {
 	jdb.total = len(jdb.db)
 
 	f, err := os.OpenFile(jdb.cfg.DBPath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o666) //nolint:gomnd
@@ -110,16 +111,18 @@ func (jdb *JSONmodels) Flush(updateIndex bool) (int, int, error) {
 	return jdb.total, jdb.new, nil
 }
 
-func (jdb *JSONmodels) AddOne(ci models.ComicsInfo) {
+func (jdb *JSONmodels) AddOne(_ context.Context, ci models.ComicsInfo) error {
 	jdb.mu.Lock()
 
 	jdb.db[ci.ID] = ci
 	jdb.new++
 
 	jdb.mu.Unlock()
+
+	return nil
 }
 
-func (jdb *JSONmodels) GetByID(id string) (models.ComicsInfo, error) {
+func (jdb *JSONmodels) GetByID(_ context.Context, id string) (models.ComicsInfo, error) {
 	jdb.mu.RLock()
 	defer jdb.mu.RUnlock()
 
@@ -131,15 +134,21 @@ func (jdb *JSONmodels) GetByID(id string) (models.ComicsInfo, error) {
 	return ci, nil
 }
 
-func (jdb *JSONmodels) GetByWord(word string, resultLen int) []models.ComicsInfo {
+func (jdb *JSONmodels) GetByWord(ctx context.Context, word string, resultLen int) ([]models.ComicsInfo, error) {
 	result := make([]models.ComicsInfo, 0, resultLen)
+
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("context error %w", ctx.Err())
+	default:
+	}
 
 	switch jdb.useIndex {
 	case true:
 		ids := jdb.index[word]
 
 		for _, cID := range ids {
-			c, err := jdb.GetByID(cID)
+			c, err := jdb.GetByID(ctx, cID)
 			if err != nil {
 				continue
 			}
@@ -147,7 +156,7 @@ func (jdb *JSONmodels) GetByWord(word string, resultLen int) []models.ComicsInfo
 			result = append(result, c)
 		}
 
-		return result
+		return result, nil
 	default:
 		for _, c := range jdb.db {
 			if slices.Contains(c.Keywords, word) {
@@ -155,7 +164,7 @@ func (jdb *JSONmodels) GetByWord(word string, resultLen int) []models.ComicsInfo
 			}
 		}
 
-		return result
+		return result, nil
 	}
 }
 

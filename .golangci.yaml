@@ -1,4 +1,6 @@
 run:
+  exclude-dirs:
+    - ./pgdata
   tests: false
   allow-serial-runners: true
   print-resources-usage: true
@@ -20,7 +22,7 @@ linters-settings:
           allow:
             - $gostd
             - github.com/
-  
+
 linters:
   disable-all: true
   enable:
@@ -139,3 +141,6 @@ issues:
   - path-except: _test\.go
     linters:
       - forbidigo
+  exclude-dirs:
+    - ./pgdata
+    - /home/max/go/src/projects/project_yadro/pgdata

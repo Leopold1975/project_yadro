@@ -15,12 +15,9 @@ import (
 func main() {
 	var configPath string
 
-	var phraseString string
-
 	var useIndex bool
 
 	flag.StringVar(&configPath, "c", "", "path to configuration file")
-	flag.StringVar(&phraseString, "s", "", "words to find IDs for")
 	flag.BoolVar(&useIndex, "i", false, "make db search through index")
 	flag.Parse()
 

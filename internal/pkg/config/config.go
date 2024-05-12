@@ -8,17 +8,25 @@ import (
 )
 
 type Config struct {
-	SourceURL       string        `env-default:"https://xkcd.com" yaml:"source_url"` //nolint:tagliatelle
-	Parallel        Parallel      `env-required:"true"            yaml:"parallel"`
-	DB              DB            `yaml:"db"`
-	Log             LogLvl        `yaml:"log"`
-	Server          Server        `yaml:"server"`
-	RefreshInterval time.Duration `yaml:"refreshInterval"`
+	SourceURL   string      `env-default:"https://xkcd.com" yaml:"source_url"` //nolint:tagliatelle
+	Parallel    Parallel    `env-required:"true"            yaml:"parallel"`
+	DB          DB          `yaml:"db"`
+	Log         LogLvl      `yaml:"log"`
+	Server      Server      `yaml:"server"`
+	RefreshTime RefreshTime `yaml:"refreshTime"`
 }
 
 type DB struct {
+	Type      string `env-required:"true"         yaml:"type"`
 	DBPath    string `env-default:"database.json" yaml:"db_file"` //nolint:tagliatelle
 	IndexPath string `yaml:"indexPath"`
+	Addr      string `yaml:"addr"`
+	Username  string `env:"POSTGRES_USER"     env-required:"true" yaml:"username"` //nolint:tagalign
+	Password  string `env:"POSTGRES_PASSWORD" yaml:"password"`                     //nolint:tagalign
+	DB        string `env:"POSTGRES_DB"       env-required:"true" yaml:"db"`       //nolint:tagalign
+	SSLmode   string `yaml:"sslmode"`
+	MaxConns  string `yaml:"maxConns"`
+	Version   int    `yaml:"version"`
 }
 
 type Server struct {
@@ -39,4 +47,19 @@ func New(path string) (Config, error) {
 	}
 
 	return cfg, nil
+}
+
+type RefreshTime struct {
+	time.Time
+}
+
+func (rt *RefreshTime) UnmarshalText(text []byte) error {
+	t, err := time.Parse("15:04:05 Z0700", string(text))
+	if err != nil {
+		return fmt.Errorf("time parse error %w", err)
+	}
+
+	rt.Time = t
+
+	return nil
 }

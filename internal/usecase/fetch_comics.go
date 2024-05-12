@@ -66,7 +66,7 @@ func (f FetchComicsUsecase) FetchComics(ctx context.Context) (FetchResponse, err
 
 	wg.Wait()
 
-	totalC, newC, err := f.db.Flush(updateIndex)
+	totalC, newC, err := f.db.Flush(ctx, updateIndex)
 	if err != nil {
 		return FetchResponse{}, fmt.Errorf("flush to file error %w", err)
 	}
@@ -87,7 +87,7 @@ func (f FetchComicsUsecase) fetchIDs(ctx context.Context, ids chan string) {
 	for i := 1; ; i++ {
 		id := strconv.Itoa(i)
 
-		_, err := f.db.GetByID(id)
+		_, err := f.db.GetByID(ctx, id)
 		if err != nil && errors.Is(err, models.ErrNotFound) {
 			select {
 			case <-ctx.Done():
@@ -138,7 +138,9 @@ func (f FetchComicsUsecase) saveComics(ctx context.Context, comicsModels chan mo
 				f.l.Error("ToDBComicsInfo error", "error", err)
 			}
 
-			f.db.AddOne(ci)
+			if err := f.db.AddOne(ctx, ci); err != nil {
+				f.l.Error("save error", "error", err)
+			}
 		}
 	}
 }
