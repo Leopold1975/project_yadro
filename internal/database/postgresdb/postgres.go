@@ -19,11 +19,12 @@ import (
 const useIndexTable = true
 
 type ComicsRepo struct {
-	db        *pgxpool.Pool
-	newComics atomic.Int32
+	db            *pgxpool.Pool
+	newComics     atomic.Int32
+	useIndexTable bool
 }
 
-func New(ctx context.Context, cfg config.DB) (ComicsRepo, error) {
+func New(ctx context.Context, cfg config.DB, useIndexTable bool) (ComicsRepo, error) {
 	connString := "postgres://" + cfg.Username + ":" + cfg.Password + "@" +
 		cfg.Addr + "/" + cfg.DB + "?" + "sslmode=" + cfg.SSLmode + "&pool_max_conns=" + cfg.MaxConns
 
@@ -40,8 +41,9 @@ func New(ctx context.Context, cfg config.DB) (ComicsRepo, error) {
 	}
 
 	return ComicsRepo{
-		db:        db,
-		newComics: atomic.Int32{},
+		db:            db,
+		newComics:     atomic.Int32{},
+		useIndexTable: useIndexTable,
 	}, nil
 }
 
@@ -123,7 +125,7 @@ func (cr *ComicsRepo) GetByWord(ctx context.Context, word string, resultLen int)
 
 	var err error
 
-	if useIndexTable {
+	if cr.useIndexTable {
 		query, args, err = pb.Select("comics.id", "comics.url", "comics.keywords").From("comics").
 			Join("keyword_comics_map kc ON kc.comics_id = comics.id").
 			Join("keywords k ON k.id = kc.keyword_id").

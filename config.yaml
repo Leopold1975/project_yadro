@@ -1,7 +1,6 @@
 source_url: https://xkcd.com
 
 db:
-  type: postgres 
   addr: 127.0.0.1:5555
   username: developer
   password: developer
@@ -10,9 +9,8 @@ db:
   maxConns: 10
   reload: false
   version: 1
-  db_file: database.json
-  indexPath: index.json
 
+apiConcurrency: 2
 
 parallel: 42 # =~NumCPU*3.5
 

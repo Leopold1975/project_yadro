@@ -17,13 +17,14 @@ var ErrNotFound = fmt.Errorf("resource not found") //nolint:perfsprint
 
 type XKCDModel struct {
 	Num        int    `json:"num"`
+	Title      string `json:"safe_title"` //nolint:tagliatelle
 	Transcript string `json:"transcript"`
 	Alt        string `json:"alt"`
 	Img        string `json:"img"`
 }
 
 func ToDBComicsInfo(m XKCDModel) (ComicsInfo, error) {
-	keywords, err := words.StemWords(m.Alt + " " + m.Transcript)
+	keywords, err := words.StemWords(m.Alt + " " + m.Transcript + " " + m.Title)
 	if err != nil {
 		return ComicsInfo{}, fmt.Errorf("stem words error: %w", err)
 	}

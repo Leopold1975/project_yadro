@@ -117,6 +117,10 @@ var testcases = []TestCase{
 		In:       "He is *reading*",
 		Expected: []string{"read"},
 	},
+	{
+		In:       "Even the powerful, tart Granny Smith cultivar is proving ineffective against new Gran-negative doctors.",
+		Expected: []string{"power", "tart", "granni", "even", "smith", "cultivar", "prove", "ineffect", "against", "new", "gran-neg", "doctor"},
+	},
 }
 
 func TestStemWords(t *testing.T) {

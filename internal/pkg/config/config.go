@@ -8,25 +8,23 @@ import (
 )
 
 type Config struct {
-	SourceURL   string      `env-default:"https://xkcd.com" yaml:"source_url"` //nolint:tagliatelle
-	Parallel    Parallel    `env-required:"true"            yaml:"parallel"`
-	DB          DB          `yaml:"db"`
-	Log         LogLvl      `yaml:"log"`
-	Server      Server      `yaml:"server"`
-	RefreshTime RefreshTime `yaml:"refreshTime"`
+	SourceURL      string         `env-default:"https://xkcd.com" yaml:"source_url"` //nolint:tagliatelle
+	Parallel       Parallel       `env-required:"true"            yaml:"parallel"`
+	APIConcurrency APIConcurrency `env-required:"true"            yaml:"apiConcurrency"`
+	DB             DB             `yaml:"db"`
+	Log            LogLvl         `yaml:"log"`
+	Server         Server         `yaml:"server"`
+	RefreshTime    RefreshTime    `yaml:"refreshTime"`
 }
 
 type DB struct {
-	Type      string `env-required:"true"         yaml:"type"`
-	DBPath    string `env-default:"database.json" yaml:"db_file"` //nolint:tagliatelle
-	IndexPath string `yaml:"indexPath"`
-	Addr      string `yaml:"addr"`
-	Username  string `env:"POSTGRES_USER"     env-required:"true" yaml:"username"` //nolint:tagalign
-	Password  string `env:"POSTGRES_PASSWORD" yaml:"password"`                     //nolint:tagalign
-	DB        string `env:"POSTGRES_DB"       env-required:"true" yaml:"db"`       //nolint:tagalign
-	SSLmode   string `yaml:"sslmode"`
-	MaxConns  string `yaml:"maxConns"`
-	Version   int    `yaml:"version"`
+	Addr     string `yaml:"addr"`
+	Username string `env:"POSTGRES_USER"     env-required:"true" yaml:"username"`
+	Password string `env:"POSTGRES_PASSWORD" yaml:"password"`
+	DB       string `env:"POSTGRES_DB"       env-required:"true" yaml:"db"`
+	SSLmode  string `yaml:"sslmode"`
+	MaxConns string `yaml:"maxConns"`
+	Version  int    `yaml:"version"`
 }
 
 type Server struct {
@@ -38,6 +36,8 @@ type Server struct {
 type LogLvl string
 
 type Parallel int
+
+type APIConcurrency int
 
 func New(path string) (Config, error) {
 	var cfg Config
