@@ -15,6 +15,7 @@ type Config struct {
 	Log            LogLvl         `yaml:"log"`
 	Server         Server         `yaml:"server"`
 	RefreshTime    RefreshTime    `yaml:"refreshTime"`
+	Auth           Auth           `yaml:"auth"`
 }
 
 type DB struct {
@@ -31,6 +32,11 @@ type Server struct {
 	Addr         string        `yaml:"addr"`
 	ReadTimeout  time.Duration `yaml:"readTimeout"`
 	WriteTimeout time.Duration `yaml:"writeTimeout"`
+}
+
+type Auth struct {
+	Secret       string        `env:"SECRET"          env-required:"true" yaml:"secret"`
+	TokenMaxTime time.Duration `yaml:"token_max_time"` //nolint:tagliatelle
 }
 
 type LogLvl string

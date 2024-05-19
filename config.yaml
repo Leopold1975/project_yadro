@@ -8,7 +8,7 @@ db:
   sslmode: disable
   maxConns: 10
   reload: false
-  version: 1
+  version: 2
 
 apiConcurrency: 2
 
@@ -22,3 +22,7 @@ server:
   writeTimeout: 10s
 
 refreshTime: 23:16:00 +0300
+
+auth:
+  secret: secret
+  token_max_time: 24h

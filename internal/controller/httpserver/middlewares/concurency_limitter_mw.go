@@ -16,7 +16,7 @@ func NewConcurrencyLimitter(cfg config.APIConcurrency) ConcurrencyLimitter {
 	}
 }
 
-func (cl ConcurrencyLimitter) ConcurrencyMiddleware(next http.Handler, cfg config.APIConcurrency) http.Handler {
+func (cl ConcurrencyLimitter) ConcurrencyMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		select {
 		case cl.limitter <- struct{}{}:
@@ -25,6 +25,7 @@ func (cl ConcurrencyLimitter) ConcurrencyMiddleware(next http.Handler, cfg confi
 			next.ServeHTTP(w, r)
 		default:
 			w.WriteHeader(http.StatusTooManyRequests)
+
 			return
 		}
 	})

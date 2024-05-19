@@ -16,8 +16,6 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // used for driver
 )
 
-const useIndexTable = true
-
 type ComicsRepo struct {
 	db            *pgxpool.Pool
 	newComics     atomic.Int32

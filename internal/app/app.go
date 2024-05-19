@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/Leopold1975/yadro_app/internal/auth/database/postgres"
+	auth "github.com/Leopold1975/yadro_app/internal/auth/usecase"
 	"github.com/Leopold1975/yadro_app/internal/controller/httpserver"
 	"github.com/Leopold1975/yadro_app/internal/controller/httpserver/middlewares"
 	"github.com/Leopold1975/yadro_app/internal/database/postgresdb"
@@ -34,24 +36,35 @@ func Run(ctx context.Context, cfg config.Config, useIndex bool) {
 		os.Exit(1)
 	}
 
+	userDB, err := postgres.New(ctx, cfg.DB)
+	if err != nil {
+		lg.Error("postgres db error", "error", err)
+		os.Exit(1)
+	}
+
 	c := xkcd.New(cfg.SourceURL)
 
 	fetch := usecase.NewComicsFetch(c, &db, cfg.Parallel, lg)
-
 	refresh := usecase.NewBackgroundRefresh(fetch, cfg.RefreshTime.Time)
+	find := usecase.NewComicsFind(&db, lg)
 
 	go refresh.Refresh(ctx, lg)
 
-	find := usecase.NewComicsFind(&db, lg)
+	login := auth.NewLoginUser(cfg.Auth, &userDB)
+	authUC := auth.NewAuthUser(cfg.Auth, &userDB)
 
-	router := httpserver.NewRouter(find, fetch)
+	router := httpserver.NewRouter(find, fetch, login)
 
 	clmw := middlewares.NewConcurrencyLimitter(cfg.APIConcurrency)
 	defer clmw.Close()
 
 	router = middlewares.LogMiddleware(
-		clmw.ConcurrencyMiddleware(router, cfg.APIConcurrency),
+		clmw.ConcurrencyMiddleware(
+			middlewares.AuthMidleware(router, authUC),
+		),
 		lg)
+
+	// router = middlewares.ProfileMiddleware(router)
 
 	serv := httpserver.New(cfg.Server, router)
 
