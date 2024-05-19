@@ -10,7 +10,11 @@ db:
   reload: false
   version: 2
 
-apiConcurrency: 2
+apiConcurrency: 192
+
+rateLimit: 
+  limit: 30
+  burst: 5
 
 parallel: 42 # =~NumCPU*3.5
 

@@ -6,21 +6,21 @@ import (
 	"github.com/Leopold1975/yadro_app/internal/pkg/config"
 )
 
-type ConcurrencyLimitter struct {
-	limitter chan struct{}
+type Concurrencylimiter struct {
+	limiter chan struct{}
 }
 
-func NewConcurrencyLimitter(cfg config.APIConcurrency) ConcurrencyLimitter {
-	return ConcurrencyLimitter{
-		limitter: make(chan struct{}, cfg),
+func NewConcurrencylimiter(cfg config.APIConcurrency) Concurrencylimiter {
+	return Concurrencylimiter{
+		limiter: make(chan struct{}, cfg),
 	}
 }
 
-func (cl ConcurrencyLimitter) ConcurrencyMiddleware(next http.Handler) http.Handler {
+func (cl Concurrencylimiter) ConcurrencyMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		select {
-		case cl.limitter <- struct{}{}:
-			defer func() { <-cl.limitter }()
+		case cl.limiter <- struct{}{}:
+			defer func() { <-cl.limiter }()
 
 			next.ServeHTTP(w, r)
 		default:
@@ -31,6 +31,6 @@ func (cl ConcurrencyLimitter) ConcurrencyMiddleware(next http.Handler) http.Hand
 	})
 }
 
-func (cl ConcurrencyLimitter) Close() {
-	close(cl.limitter)
+func (cl Concurrencylimiter) Close() {
+	close(cl.limiter)
 }

@@ -16,6 +16,7 @@ type Config struct {
 	Server         Server         `yaml:"server"`
 	RefreshTime    RefreshTime    `yaml:"refreshTime"`
 	Auth           Auth           `yaml:"auth"`
+	Ratelimit      Ratelimit      `yaml:"rateLimit"`
 }
 
 type DB struct {
@@ -37,6 +38,11 @@ type Server struct {
 type Auth struct {
 	Secret       string        `env:"SECRET"          env-required:"true" yaml:"secret"`
 	TokenMaxTime time.Duration `yaml:"token_max_time"` //nolint:tagliatelle
+}
+
+type Ratelimit struct {
+	Limit int `yaml:"limit"`
+	Burst int `yaml:"burst"`
 }
 
 type LogLvl string

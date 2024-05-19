@@ -27,6 +27,11 @@ run: build
 
 all: build
 
+load_test:
+	bombardier -n 1000000 -c 125 -l -H "Content-Type: application/json" \
+	-H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYyMTcxNTMsInJvbGUiOiJhZG1pbiJ9.5c9Q6G3UlSEvB7SePtAdzIKYjwmaqEBGu1V0JSqIkNI" \
+	"http://localhost:4444/pics?search=%22apple%20doctor%22"
+
 clean:
 	podman stop comics_db_c || true
 	podman rm comics_db_c || true

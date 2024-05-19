@@ -55,12 +55,17 @@ func Run(ctx context.Context, cfg config.Config, useIndex bool) {
 
 	router := httpserver.NewRouter(find, fetch, login)
 
-	clmw := middlewares.NewConcurrencyLimitter(cfg.APIConcurrency)
+	clmw := middlewares.NewConcurrencylimiter(cfg.APIConcurrency)
 	defer clmw.Close()
+
+	rl := middlewares.NewRateLimiter(cfg.Ratelimit)
 
 	router = middlewares.LogMiddleware(
 		clmw.ConcurrencyMiddleware(
-			middlewares.AuthMidleware(router, authUC),
+			middlewares.AuthMidleware(
+				rl.RatelimiterMiddleware(
+					router,
+				), authUC),
 		),
 		lg)
 

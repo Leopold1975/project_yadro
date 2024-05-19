@@ -1,0 +1,19 @@
+bombardier -n 1000000 -c 125 -l -H "Content-Type: application/json" \
+-H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYyMTcxNTMsInJvbGUiOiJhZG1pbiJ9.5c9Q6G3UlSEvB7SePtAdzIKYjwmaqEBGu1V0JSqIkNI" \
+"http://localhost:4444/pics?search=%22apple%20doctor%22"
+Bombarding http://localhost:4444/pics?search=%22apple%20doctor%22 with 1000000 request(s) using 125 connection(s)
+
+Done!
+Statistics        Avg      Stdev        Max
+  Reqs/sec     26621.51    6183.09   38329.72
+  Latency        4.69ms     2.35ms    72.42ms
+  Latency Distribution
+     50%     1.51ms
+     75%     9.34ms
+     90%    11.08ms
+     95%    13.27ms
+     99%    22.06ms
+  HTTP codes:
+    1xx - 0, 2xx - 1132, 3xx - 0, 4xx - 998868, 5xx - 0
+    others - 0
+  Throughput:     9.28MB/s
