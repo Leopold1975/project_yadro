@@ -35,6 +35,7 @@ func (rl *RateLimiter) RatelimiterMiddleware(next http.Handler) http.Handler {
 		}
 
 		var limiter *rate.Limiter
+
 		var exists bool
 
 		rl.mu.Lock()

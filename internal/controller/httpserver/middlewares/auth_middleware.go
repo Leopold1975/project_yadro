@@ -37,7 +37,9 @@ func AuthMidleware(next http.Handler, auth usecase.AuthUserUsecase) http.Handler
 
 		role, err := auth.Auth(r.Context(), token)
 		if err != nil {
-			http.Error(w, fmt.Errorf("auth error %w", err).Error(), http.StatusBadRequest)
+			http.Error(w, fmt.Errorf("auth error %w", err).Error(), http.StatusUnauthorized)
+
+			return
 		}
 
 		ctxR := context.WithValue(r.Context(), models.RoleKey, models.Role(role))

@@ -11,12 +11,13 @@ require (
 	github.com/kljensen/snowball v0.9.0
 	github.com/stretchr/testify v1.9.0
 	github.com/surgebase/porter2 v0.0.0-20150829210152-56e4718818e8
+	golang.org/x/crypto v0.20.0
 	golang.org/x/text v0.14.0
+	golang.org/x/time v0.5.0
 )
 
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
-	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-github/v39 v39.2.0 // indirect
@@ -35,12 +36,9 @@ require (
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/surge/glog v0.0.0-20141108051140-2578deb2b95c // indirect
 	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/ratelimit v0.3.1 // indirect
-	golang.org/x/crypto v0.20.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/oauth2 v0.14.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
-	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
