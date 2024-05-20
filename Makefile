@@ -12,10 +12,12 @@ d_build:
 	go build -gcflags "all=-N -l" -o $(DEBUG_APP_NAME) ./cmd/xkcd/.
 
 podman_up:
+	mkdir .pgdata || echo ".pgdata created"
 	podman build -t comics_db ./build/db/
 	podman run  --name comics_db_c -p 5555:5432 -d -v ./.pgdata:/var/lib/postgresql/data:Z  localhost/comics_db:latest 
 
 docker_up:
+	mkdir .pgdata || echo ".pgdata created"
 	docker build -t comics_db ./build/db/
 	docker run  --name comics_db_c -p 5555:5432 -d -v ./.pgdata:/var/lib/postgresql/data:Z  comics_db:latest 
 

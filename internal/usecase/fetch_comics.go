@@ -72,6 +72,8 @@ func (f FetchComicsUsecase) FetchComics(ctx context.Context) (FetchResponse, err
 	}
 
 	if f.client.Err != nil {
+		defer f.client.RefreshError()
+
 		return FetchResponse{}, fmt.Errorf("client error: %w", f.client.Err)
 	}
 

@@ -94,3 +94,7 @@ loop:
 		c.Err = err
 	}
 }
+
+func (c *Client) RefreshError() {
+	c.Err = nil
+}

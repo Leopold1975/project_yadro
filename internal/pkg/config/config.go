@@ -10,13 +10,13 @@ import (
 type Config struct {
 	SourceURL      string         `env-default:"https://xkcd.com" yaml:"source_url"` //nolint:tagliatelle
 	Parallel       Parallel       `env-required:"true"            yaml:"parallel"`
-	APIConcurrency APIConcurrency `env-required:"true"            yaml:"apiConcurrency"`
+	APIConcurrency APIConcurrency `env-required:"true"            yaml:"concurrency_limit"` //nolint:tagliatelle
 	DB             DB             `yaml:"db"`
 	Log            LogLvl         `yaml:"log"`
 	Server         Server         `yaml:"server"`
 	RefreshTime    RefreshTime    `yaml:"refreshTime"`
 	Auth           Auth           `yaml:"auth"`
-	Ratelimit      Ratelimit      `yaml:"rateLimit"`
+	Ratelimit      Ratelimit      `env-required:"true"            yaml:"rate_limit"` //nolint:tagliatelle
 }
 
 type DB struct {

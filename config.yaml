@@ -10,9 +10,9 @@ db:
   reload: false
   version: 2
 
-apiConcurrency: 192
+concurrency_limit: 192
 
-rateLimit: 
+rate_limit: 
   limit: 30
   burst: 5
 
