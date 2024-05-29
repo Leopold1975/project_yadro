@@ -8,8 +8,8 @@ import (
 )
 
 type BackgroundRefreshUsecase struct {
-	fetch       FetchComicsUsecase
 	refreshTime time.Time
+	fetch       FetchComicsUsecase
 }
 
 func NewBackgroundRefresh(fetch FetchComicsUsecase, refreshTime time.Time) BackgroundRefreshUsecase {

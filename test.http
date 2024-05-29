@@ -1,7 +1,7 @@
 ### valid request, admin token
 POST http://localhost:4444/update
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYyMTcxNTMsInJvbGUiOiJhZG1pbiJ9.5c9Q6G3UlSEvB7SePtAdzIKYjwmaqEBGu1V0JSqIkNI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTcwNDYzNjcsInJvbGUiOiJhZG1pbiJ9.d7C8U-n5aTQtFxsZ2gVpnrW005P1HlxFCJ3ojaTkvFw
 
 {}
 
@@ -13,13 +13,12 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYyMTg5M
 ### user token
 GET http://localhost:4444/pics?search="I'll follow your questions"
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYyMTg5MzYsInJvbGUiOiJ1c2VyIn0.74QlqTd-wuvxCz6rofjuqYuiaYPWKp5bkRS_op3xFxE
-
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTcwNDYzNjcsInJvbGUiOiJhZG1pbiJ9.d7C8U-n5aTQtFxsZ2gVpnrW005P1HlxFCJ3ojaTkvFw
 
 ### admin token
 GET http://localhost:4444/pics?search="apple doctor"
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYzMTE0NjgsInJvbGUiOiJhZG1pbiJ9.v9fUGb5fjpZ2jdx0F9z_vMnOeeoVEP4k4n0QjA5Ktbg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTY3MTI3MDIsInJvbGUiOiJ1c2VyIn0.6e0oUbSrj2he3fZPwts4mh9Z3OfFeMNIkgJHLmcuQRg
 
 
 ###
@@ -27,8 +26,8 @@ POST http://localhost:4444/login
 Content-Type: application/json
 
 {
-    "username": "user1",
-    "password": "123456"
+    "username": "admin",
+    "password": "admin"
 }
 
 // admin password: admin

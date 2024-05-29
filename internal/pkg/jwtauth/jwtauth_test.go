@@ -26,7 +26,7 @@ func TestBasic(t *testing.T) {
 
 	role, err := jwtauth.ValidateTokenRole(token, secret)
 	require.NoError(t, err)
-	require.Equal(t, userExample.Role, role)
+	require.Equal(t, userExample.Role, models.Role(role))
 }
 
 func TestValidateToken(t *testing.T) {

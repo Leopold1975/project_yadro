@@ -25,7 +25,7 @@ func ApplyMigration(connString string, version int) error {
 	v, dirty, err := m.Version()
 	if err != nil && !errors.Is(err, migrate.ErrNilVersion) {
 		if dirty {
-			err := m.Force(1)
+			err = m.Force(1)
 			if err != nil {
 				return fmt.Errorf("force migration error %w", err)
 			}

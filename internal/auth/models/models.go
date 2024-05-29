@@ -9,10 +9,10 @@ const (
 )
 
 type User struct {
-	ID           int    `json:"id"`
 	Username     string `json:"username"`
 	PasswordHash string `json:"passwordHash"`
 	Role         Role   `json:"role"`
+	ID           int    `json:"id"`
 }
 
 type Role string

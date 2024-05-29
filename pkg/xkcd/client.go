@@ -20,9 +20,9 @@ const (
 var ErrUnexpectedCode = errors.New("unexpected response from server")
 
 type Client struct {
-	sourceURL string
 	client    *http.Client
 	Err       error
+	sourceURL string
 }
 
 func New(sourceURL string) *Client {

@@ -4,6 +4,20 @@ DEBUG_APP_NAME := bin/xkcd-d
 lint:
 	golangci-lint run ./cmd/... ./pkg/... ./internal/...
 
+podman_test:
+	CM=podman go test -race -count=1 -timeout=60s \
+	-cover -coverprofile=coverage.out ./...
+
+docker_test:
+	CM=docker go test -race -count=1 -timeout=60s \
+	-cover -coverprofile=coverage.out ./...
+
+sec:
+	which trivy > /dev/null || curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.51.4
+	which govulncheck > /dev/null || go install golang.org/x/vuln/cmd/govulncheck@latest
+	trivy fs .
+	govulncheck ./...
+
 build: lint
 	@echo "Building $(APPNAME)..."
 	go build -o $(APPNAME) ./cmd/xkcd/.

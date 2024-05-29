@@ -17,15 +17,26 @@ func Connect(ctx context.Context, connString string) (*pgxpool.Pool, error) {
 
 		dbc, err := pgxpool.New(ctx, connString)
 		if err != nil {
-			errCh <- fmt.Errorf("cannot create db pool error: %w", err)
+			defaultDelay := time.Second
 
-			return
+			for err != nil {
+				time.Sleep(defaultDelay)
+				defaultDelay += time.Second
+
+				if defaultDelay > time.Second*10 {
+					errCh <- fmt.Errorf("cannot connect to db error: %w", err)
+
+					return
+				}
+
+				dbc, err = pgxpool.New(ctx, connString)
+			}
 		}
 
 		defaultDelay := time.Second
 
-		for {
-			if err := dbc.Ping(ctx); err != nil {
+		if err := dbc.Ping(ctx); err != nil {
+			for err != nil {
 				time.Sleep(defaultDelay)
 				defaultDelay += time.Second
 
@@ -35,14 +46,13 @@ func Connect(ctx context.Context, connString string) (*pgxpool.Pool, error) {
 					return
 				}
 
-				continue
+				err = dbc.Ping(ctx)
 			}
-
-			break
 		}
 
 		db = dbc
 	}()
+
 	select {
 	case <-ctx.Done():
 		return nil, fmt.Errorf("context error: %w", ctx.Err())
