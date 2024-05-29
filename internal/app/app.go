@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec // TODO: remove on finixhing dev.
-	"os"
 	"time"
 
 	"github.com/Leopold1975/yadro_app/internal/auth/database/postgres"
@@ -18,11 +17,6 @@ import (
 	"github.com/Leopold1975/yadro_app/pkg/xkcd"
 )
 
-const (
-	JSONDB     = "json"
-	PostgresDB = "postgres"
-)
-
 func Run(ctx context.Context, cfg config.Config, useIndex bool) {
 	go func() {
 		http.ListenAndServe("localhost:6060", nil) //nolint:gosec,errcheck // pprof
@@ -33,13 +27,15 @@ func Run(ctx context.Context, cfg config.Config, useIndex bool) {
 	db, err := postgresdb.New(ctx, cfg.DB, useIndex)
 	if err != nil {
 		lg.Error("postgres db error", "error", err)
-		os.Exit(1)
+
+		return
 	}
 
 	userDB, err := postgres.New(ctx, cfg.DB)
 	if err != nil {
 		lg.Error("postgres db error", "error", err)
-		os.Exit(1)
+
+		return
 	}
 
 	c := xkcd.New(cfg.SourceURL)
@@ -80,8 +76,6 @@ func Run(ctx context.Context, cfg config.Config, useIndex bool) {
 			lg.Error("server start error", "error", err)
 		}
 	}()
-
-	lg.Info("Server started", "addr", cfg.Server.Addr)
 
 	<-ctx.Done()
 

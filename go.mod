@@ -1,6 +1,6 @@
 module github.com/Leopold1975/yadro_app
 
-go 1.22.1
+go 1.22.3
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
@@ -11,7 +11,7 @@ require (
 	github.com/kljensen/snowball v0.9.0
 	github.com/stretchr/testify v1.9.0
 	github.com/surgebase/porter2 v0.0.0-20150829210152-56e4718818e8
-	golang.org/x/crypto v0.20.0
+	golang.org/x/crypto v0.21.0
 	golang.org/x/text v0.14.0
 	golang.org/x/time v0.5.0
 )
@@ -36,7 +36,7 @@ require (
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/surge/glog v0.0.0-20141108051140-2578deb2b95c // indirect
 	go.uber.org/atomic v1.7.0 // indirect
-	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/oauth2 v0.14.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

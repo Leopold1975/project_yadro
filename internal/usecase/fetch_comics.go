@@ -20,10 +20,10 @@ const (
 )
 
 type FetchComicsUsecase struct {
+	l        logger.Logger
 	client   *xkcd.Client
 	db       Storage
 	parallel config.Parallel
-	l        logger.Logger
 }
 
 type FetchResponse struct {

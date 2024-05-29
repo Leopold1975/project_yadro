@@ -113,8 +113,8 @@ func (cr *ComicsRepo) GetByID(ctx context.Context, id string) (models.ComicsInfo
 	return ci, nil
 }
 
-func (cr *ComicsRepo) GetByWord(ctx context.Context, word string, resultLen int) ([]models.ComicsInfo, error) {
-	result := make([]models.ComicsInfo, 0, resultLen)
+func (cr *ComicsRepo) GetByWord(ctx context.Context, word string, _ int) ([]models.ComicsInfo, error) {
+	// result := make([]models.ComicsInfo, 0, resultLen)
 	pb := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
 	var query string
@@ -143,23 +143,25 @@ func (cr *ComicsRepo) GetByWord(ctx context.Context, word string, resultLen int)
 	if err != nil {
 		return nil, fmt.Errorf("query error %w", err)
 	}
-
 	defer rows.Close()
 
-	for rows.Next() {
+	result, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (models.ComicsInfo, error) {
 		var m models.ComicsInfo
 
 		var keywordsJSON string
 
-		if err := rows.Scan(&m.ID, &m.URL, &keywordsJSON); err != nil {
-			return nil, fmt.Errorf("scan error %w", err)
+		if err = row.Scan(&m.ID, &m.URL, &keywordsJSON); err != nil {
+			return models.ComicsInfo{}, fmt.Errorf("scan error %w", err)
 		}
 
-		if err := json.Unmarshal([]byte(keywordsJSON), &m.Keywords); err != nil {
-			return nil, fmt.Errorf("unmarshal error %w", err)
+		if err = json.Unmarshal([]byte(keywordsJSON), &m.Keywords); err != nil {
+			return models.ComicsInfo{}, fmt.Errorf("unmarshal error %w", err)
 		}
 
-		result = append(result, m)
+		return m, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("rows error %w", err)
 	}
 
 	return result, nil

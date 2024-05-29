@@ -1,0 +1,32 @@
+source_url: https://xkcd.com
+
+db:
+  addr: 127.0.0.1:7788
+  username: postgres
+  password: qwerty
+  db: comics
+  sslmode: disable
+  maxConns: 10
+  reload: false
+  version: 2
+
+concurrency_limit: 192
+
+rate_limit: 
+  limit: 30
+  burst: 5
+
+parallel: 42 # =~NumCPU*3.5
+
+log: debug
+
+server:
+  addr: 127.0.0.1:7789
+  readTimeout: 30s
+  writeTimeout: 30s
+
+refreshTime: 23:16:00 +0300
+
+auth:
+  secret: secret
+  token_max_time: 24h

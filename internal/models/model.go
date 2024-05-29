@@ -16,11 +16,11 @@ type ComicsInfo struct {
 var ErrNotFound = fmt.Errorf("resource not found") //nolint:perfsprint
 
 type XKCDModel struct {
-	Num        int    `json:"num"`
 	Title      string `json:"safe_title"` //nolint:tagliatelle
 	Transcript string `json:"transcript"`
 	Alt        string `json:"alt"`
 	Img        string `json:"img"`
+	Num        int    `json:"num"`
 }
 
 func ToDBComicsInfo(m XKCDModel) (ComicsInfo, error) {
@@ -34,33 +34,4 @@ func ToDBComicsInfo(m XKCDModel) (ComicsInfo, error) {
 		URL:      m.Img,
 		Keywords: keywords,
 	}, nil
-}
-
-func ToDBComicsInfos(models []XKCDModel) ([]ComicsInfo, error) {
-	result := make([]ComicsInfo, 0, len(models))
-	errs := make([]error, 0)
-
-	for _, m := range models {
-		ci, err := ToDBComicsInfo(m)
-		if err != nil {
-			errs = append(errs, err)
-
-			continue
-		}
-
-		result = append(result, ci)
-	}
-
-	var err error
-	for _, e := range errs {
-		if err == nil {
-			err = fmt.Errorf("%w", e)
-
-			continue
-		}
-
-		err = fmt.Errorf("%w\n%w", err, e)
-	}
-
-	return result, err
 }

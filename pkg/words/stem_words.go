@@ -51,7 +51,7 @@ func StemWordsSnowball(phrase string) ([]string, error) {
 	uniqueWords := make(map[string]struct{}, len(words))
 
 	for _, w := range words {
-		w, err := snowball.Stem(w, EngLang, true)
+		w, err := snowball.Stem(w, EngLang, true) //nolint:govet
 		if err != nil {
 			return nil, fmt.Errorf("snowball stemming error: %w", err)
 		}
